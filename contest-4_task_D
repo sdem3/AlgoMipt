@@ -1,0 +1,83 @@
+#include <vector>
+
+#include <iostream>
+
+template <typename T>
+class Fenwick {
+ private:
+  int n_;
+  std::vector<std::vector<std::vector<T>>> data_;
+  int64_t F(int64_t i) { return i & (i + 1); }
+  int64_t G(int64_t i) { return i | (i + 1); }
+  T Volume(int64_t x, int64_t y, int64_t z) {
+    if (z < 0 or x < 0 or y < 0) {
+      return 0;
+    }
+    T res = 0;
+    for (int64_t i = x; i >= 0; i = F(i) - 1) {
+      for (int64_t j = y; j >= 0; j = F(j) - 1) {
+        for (int64_t k = z; k >= 0; k = F(k) - 1) {
+          res += data_[i][j][k];
+        }
+      }
+    }
+    return res;
+  }
+  T Volume(int64_t x1, int64_t x2, int64_t y1, int64_t y2, int64_t z) {
+    T v_0 = Volume(x2, y2, z);
+    T v_1 = Volume(x2, y1 - 1, z);
+    T v_2 = Volume(x1 - 1, y2, z);
+    T v_3 = Volume(x1 - 1, y1 - 1, z);
+    return v_0 - v_1 - v_2 + v_3;
+  }
+
+ public:
+  void Add(int64_t x, int64_t y, int64_t z, T value) {
+    for (int64_t i = x; i < n_; i = G(i)) {
+      for (int64_t j = y; j < n_; j = G(j)) {
+        for (int64_t k = z; k < n_; k = G(k)) {
+          data_[i][j][k] += value;
+        }
+      }
+    }
+  }
+  T Volume(int64_t x1, int64_t y1, int64_t z1, int64_t x2, int64_t y2,
+           int64_t z2) {
+    return Volume(x1, x2, y1, y2, z2) - Volume(x1, x2, y1, y2, z1 - 1);
+  }
+  Fenwick(int n) {
+    std::vector<T> v(n, 0);
+    std::vector<std::vector<T>> v1;
+    for (int64_t i = 0; i < n; i++) {
+      v1.push_back(v);
+    }
+    std::vector<std::vector<std::vector<T>>> v2;
+    for (int64_t i = 0; i < n; i++) {
+      v2.push_back(v1);
+    }
+    data_ = v2;
+    this->n_ = n;
+  }
+};
+int main() {
+  int n;
+  std::cin >> n;
+  int64_t c;
+  Fenwick<int64_t> tree(n);
+  while (true) {
+    std::cin >> c;
+    if (c == 1) {
+      int x, y, z, value;
+      std::cin >> x >> y >> z >> value;
+      tree.Add(x, y, z, value);
+    }
+    if (c == 2) {
+      int x1, x2, y1, y2, z1, z2;
+      std::cin >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
+      std::cout << tree.Volume(x1, y1, z1, x2, y2, z2) << '\n';
+    }
+    if (c == 3) {
+      break;
+    }
+  }
+}
