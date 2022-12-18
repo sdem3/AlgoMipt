@@ -1,0 +1,85 @@
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <vector>
+template <typename T>
+class SecondStat {
+ public:
+  std::pair<T, T> operator()(const std::pair<T, T>& pair1,
+                             const std::pair<T, T>& pair2) {
+    std::vector<int> arr = {pair1.first, pair1.second, pair2.first,
+                            pair2.second};
+    std::sort(arr.begin(), arr.end());
+    T a, b;
+    b = 1000000;
+    a = arr[0];
+    if (arr[3] != a) {
+      b = arr[3];
+    }
+    if (arr[2] != a) {
+      b = arr[2];
+    }
+    if (arr[1] != a) {
+      b = arr[1];
+    }
+    return std::pair<T, T>(a, b);
+  }
+  std::pair<T, T> operator()(const T& a, const T& b) {
+    return std::pair<T, T>(std::min(a, b), std::max(a, b));
+  }
+};
+template <typename T, typename OperationFunctor>
+class SparseTable {
+ public:
+  SparseTable(const std::vector<T>& data) {
+    logs_.resize(data.size() + 2, 0);
+    n_ = data.size();
+    PrecalcLogs(data.size() + 2);
+    log_n_ = logs_[n_];
+    sparse_.assign(log_n_ + 1, std::vector<T>(n_ + 1, T()));
+    BuildSparse(data);
+  }
+  T Query(size_t l, size_t r) {
+    size_t lg = logs_[r - l];
+    return op_(sparse_[lg][l], sparse_[lg][r - (1 << lg)]);
+  }
+
+ private:
+  void BuildSparse(const std::vector<T>& data) {
+    sparse_[0] = data;
+    for (size_t k = 1; k <= log_n_; ++k) {
+      for (size_t i = 0; i + (1 << k) <= n_; ++i) {
+        sparse_[k][i] =
+            op_(sparse_[k - 1][i], sparse_[k - 1][i + (1 << (k - 1))]);
+      }
+    }
+  }
+  void PrecalcLogs(size_t n) {
+    logs_[0] = 0;
+    logs_[1] = 0;
+    for (size_t i = 2; i < n; ++i) {
+      logs_[i] = logs_[i / 2] + 1;
+    }
+  }
+  size_t n_;
+  size_t log_n_;
+  std::vector<size_t> logs_;
+  std::vector<std::vector<T>> sparse_;
+  OperationFunctor op_;
+};
+int main() {
+  size_t m, n;
+  std::cin >> n >> m;
+  std::vector<std::pair<int, int>> v;
+  for (size_t i = 0; i < n; i++) {
+    int x;
+    std::cin >> x;
+    v.push_back(std::pair<int, int>(x, 1000000));
+  }
+  SparseTable<std::pair<int, int>, SecondStat<int>> st(v);
+  for (size_t i = 0; i < m; i++) {
+    size_t l, r;
+    std::cin >> l >> r;
+    std::cout << st.Query(l - 1, r).second << '\n';
+  }
+}
