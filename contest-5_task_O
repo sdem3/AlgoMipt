@@ -1,0 +1,58 @@
+#include <algorithm>
+#include <iostream>
+#include <vector>
+class HashTable {
+ public:
+  HashTable(size_t m) : data_(m), m_(m) {}
+  bool Find(size_t x) {
+    return std::find(data_[H(x)].begin(), data_[H(x)].end(), x) !=
+           data_[H(x)].end();
+  }
+  void Insert(size_t x) {
+    size_t i = 0;
+    if (!Find(x)) {
+      if (data_[H(x)].data() != nullptr) {
+        while (data_[H(x)][i] < x) {
+          ++i;
+        }
+        data_[H(x)].insert(data_[H(x)].begin() + i, x);
+      } else {
+        data_[H(x)].push_back(x);
+      }
+    }
+  }
+  void Erase(size_t x) {
+    if (Find(x)) {
+      data_[H(x)].erase(std::find(data_[H(x)].begin(), data_[H(x)].end(), x));
+    }
+  }
+
+ private:
+  size_t H(size_t x) { return ((2021 * x + 999999) % (1000000000 + 7)) % m_; }
+  std::vector<std::vector<size_t> > data_;
+  size_t m_;
+};
+int main() {
+  size_t n;
+  std::cin >> n;
+  HashTable table(n);
+  for (size_t i = 0; i < n; i++) {
+    char c;
+    size_t x;
+    std::cin >> c >> x;
+    if (c == '+') {
+      table.Insert(x);
+    }
+    if (c == '-') {
+      table.Erase(x);
+    }
+    if (c == '?') {
+      if (table.Find(x)) {
+        std::cout << "YES" << '\n';
+      } else {
+        std::cout << "NO" << '\n';
+      }
+    }
+  }
+}
+
