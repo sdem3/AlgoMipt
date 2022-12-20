@@ -1,0 +1,35 @@
+#include <cmath>
+#include <iomanip>
+#include <iostream>
+void FillPrefiks(int n, long double* prefiks, long double* mandragors) {
+  prefiks[0] = 1;
+  prefiks[1] = pow(mandragors[1], 1.0 / n);
+  for (int i = 2; i <= n; i++) {
+    prefiks[i] = prefiks[i - 1] * pow(mandragors[i], 1.0 / n);
+  }
+}
+long double Meangeo(int l, int r, int n, const long double* prefiks) {
+  long double res = pow(prefiks[r + 1] / prefiks[l], (n * 1.0) / (r - l + 1));
+  return res;
+}
+
+int main() {
+  int n;
+  std::cin >> n;
+  long double* mandragors = new long double[n + 1];
+  long double* prefiks = new long double[n + 1];
+  for (int i = 1; i <= n; i++) {
+    std::cin >> mandragors[i];
+  }
+  FillPrefiks(n, prefiks, mandragors);
+  int q;
+  std::cin >> q;
+  int l, r;
+  std::cout << std::fixed << std::setprecision(16);
+  for (int i = 0; i < q; i++) {
+    std::cin >> l >> r;
+    std::cout << Meangeo(l, r, n, prefiks) << '\n';
+  }
+  delete[] mandragors;
+  delete[] prefiks;
+}
